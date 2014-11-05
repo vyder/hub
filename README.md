@@ -2,7 +2,9 @@
 
 == Description
 
-'hub' is a ridiculously tiny script that's basically an alias for `git clone git@github.com:#{user}/#{repo}.git`.
+'hub' is a ridiculously tiny script that's basically an alias for:
+
+`git clone git@github.com:#{user}/#{repo}.git`.
 
 The nice-ness is in the usage - way less typing, and it assumes I mean
 one of my repositories when there's no '/' in the name, otherwise it
