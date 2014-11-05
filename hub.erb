@@ -14,4 +14,9 @@ else
   repo = input[0]
 end
 
+puts "Assuming you mean '".light_yellow +
+	 user.blue +
+     "/".light_yellow +
+	 repo.blue +
+     "'.".light_yellow
 %x( git clone git@github.com:#{user}/#{repo}.git )
