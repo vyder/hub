@@ -24,6 +24,7 @@ for it and make a pull request.
 I'll just paste some sample terminal output here:
 ```
   ~/Code: hub dotfiles
+  Assuming you mean 'vyder/dotfiles'.
   Cloning into 'dotfiles'...
   remote: Counting objects: 6, done.
   remote: Compressing objects: 100% (4/4), done.
@@ -31,14 +32,16 @@ I'll just paste some sample terminal output here:
   Receiving objects: 100% (6/6), done.
   Checking connectivity... done.
   ~/Code: hub defunkt/dotjs
+  Assuming you mean 'defunkt/dotjs'.
   Cloning into 'dotjs'...
   remote: Counting objects: 426, done.
   remote: Total 426 (delta 0), reused 0 (delta 0)
-  Receiving objects: 100% (426/426), 535.84 KiB | 498.00 KiB/s, done.
+  Receiving objects: 100% (426/426), 535.84 KiB | 974.00 KiB/s, done.
   Resolving deltas: 100% (181/181), done.
   Checking connectivity... done.
-  ~/Code: hub askjdfalsd
-  Cloning into 'askjdfalsd'...
+  ~/Code: hub asdfjhalsdf
+  Assuming you mean 'vyder/asdfjhalsdf'.
+  Cloning into 'asdfjhalsdf'...
   ERROR: Repository not found.
   fatal: Could not read from remote repository.
 
