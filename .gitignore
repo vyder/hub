@@ -1,0 +1,6 @@
+Gemfile.lock
+.local/*
+
+# Generated files
+hub
+options.json

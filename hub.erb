@@ -1,0 +1,17 @@
+#!/usr/bin/env ruby
+
+require 'colorize'
+require 'optparse'
+
+input = ARGV[0].split('/')
+
+user = '<%= options['github_id'] %>'
+repo = nil
+if input.size > 1
+  user  = input[0]
+  repo = input[1]
+else
+  repo = input[0]
+end
+
+%x( git clone git@github.com:#{user}/#{repo}.git )
