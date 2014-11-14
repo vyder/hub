@@ -34,6 +34,7 @@ I'll just paste some sample terminal output here:
   remote: Total 6 (delta 0), reused 6 (delta 0)
   Receiving objects: 100% (6/6), done.
   Checking connectivity... done.
+
   ~/Code: hub defunkt/dotjs
   Assuming you mean 'defunkt/dotjs'.
   Cloning into 'dotjs'...
@@ -42,6 +43,7 @@ I'll just paste some sample terminal output here:
   Receiving objects: 100% (426/426), 535.84 KiB | 974.00 KiB/s, done.
   Resolving deltas: 100% (181/181), done.
   Checking connectivity... done.
+
   ~/Code: hub asdfjhalsdf
   Assuming you mean 'vyder/asdfjhalsdf'.
   Cloning into 'asdfjhalsdf'...
