@@ -15,8 +15,9 @@ that I can use as an installer across all my projects.
 
 == Install
 
-1. `rake install`
-2. Follow the prompts
+1. `bundle install`
+2. `rake install`
+3. Follow the prompts
 
 If you come across a bug while installing, do let me know. Better yet, find a fix
 for it and make a pull request.
