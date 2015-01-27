@@ -2,10 +2,16 @@
 # 1. Let user pick custom install path
 # 2. Create a loop from verifying ID to getting a new ID
 
-require 'colorize'
-require 'erb'
-require 'json'
-
+begin
+    require 'colorize'
+    require 'erb'
+    require 'json'
+rescue LoadError => e
+    puts "Looks like you're missing a gem:"
+    puts e.message
+    puts "Try running `bundle install` to resolve this issue."
+    exit(1)
+end
 BINARY_NAME = "hub"
 BINARY_TEMPLATE = File.read(File.expand_path("hub.erb"))
 INSTALL_PATH = File.join(File.expand_path("~/bin"), "hub")
