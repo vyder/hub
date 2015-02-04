@@ -1,2 +1,3 @@
 _version=2.2.0
 repo=vyder/hub
+branches=master,github-todos
