@@ -164,7 +164,11 @@ end
 
 # Validate username by pinging github profile page and checking HTTP status code
 def profile_exists? github_id
-  http_status_code = %x( curl -s -o /dev/null -w "%{http_code}" https://github.com/#{github_id})
-
-  http_status_code == "200"
+    # Commenting this out because it takes too much time to verify in India
+    # 2/4/2015 @vyder
+    # TODO: Make this check optional
+    true
+  # http_status_code = %x( curl -s -o /dev/null -w "%{http_code}" https://github.com/#{github_id})
+  #
+  # http_status_code == "200"
 end

@@ -1,11 +1,36 @@
 #!/usr/bin/env ruby
 
 require 'colorize'
-require 'optparse'
-
-input = ARGV[0].split('/')
 
 user = '<%= options['github_id'] %>'
+opts = {}
+opts[:copy] = false
+
+def pbcopy(input)
+  str = input.to_s
+  IO.popen('pbcopy', 'w') { |f| f << str }
+  str
+end
+
+def pbpaste
+  `pbpaste`
+end
+
+args = ARGV.dup
+
+if args[0] == "--copy"
+    opts[:copy] = true
+    args.shift
+end
+
+if args.empty?
+    # TODO: Display help
+    puts "Oops, you're using this all wrong".red
+    exit(0)
+end
+
+input = args[0].split('/')
+
 repo = nil
 if input.size > 1
   user  = input[0]
@@ -14,9 +39,16 @@ else
   repo = input[0]
 end
 
-puts "Assuming you mean '".light_yellow +
-	 user.blue +
-     "/".light_yellow +
-	 repo.blue +
-     "'.".light_yellow
-%x( git clone git@github.com:#{user}/#{repo}.git )
+repo_url = "git@github.com:#{user}/#{repo}.git"
+
+if opts[:copy]
+    pbcopy(repo_url)
+    puts "Copied #{repo_url.blue} to your clipboard!"
+else
+    puts "Assuming you mean '".light_yellow +
+    	 user.blue +
+         "/".light_yellow +
+    	 repo.blue +
+         "'.".light_yellow
+    %x( git clone #{repo_url} )
+end
