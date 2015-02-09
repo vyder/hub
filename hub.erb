@@ -16,6 +16,10 @@ def pbpaste
   `pbpaste`
 end
 
+def git_repo_url_for(user, repo)
+    "git@github.com:#{user}/#{repo}.git"
+end
+
 args = ARGV.dup
 
 display_help = false
@@ -25,6 +29,8 @@ if !first_arg.nil? and first_arg[0] == "-" # It's an option
     args.shift
     if first_arg == "--copy"
         opts[:copy] = true
+    elsif first_arg == "--add"
+        opts[:add] = true
     elsif first_arg == "--help"
         display_help = true
     end
@@ -52,11 +58,19 @@ else
   repo = input[0]
 end
 
-repo_url = "git@github.com:#{user}/#{repo}.git"
+repo_url = git_repo_url_for(user, repo)
+repo_url_in_color = git_repo_url_for(user.blue, repo.blue)
 
 if opts[:copy]
     pbcopy(repo_url)
     puts "Copied #{repo_url.blue} to your clipboard!"
+elsif opts[:add]
+    unless File.exist?(".git")
+        puts "Oops, this place does not seem to have a git repo.".red
+        exit(1)
+    end
+    puts "Adding remote origin: ".light_yellow + repo_url_in_color
+    %x( git remote add origin #{repo_url} )
 else
     puts "Assuming you mean '".light_yellow +
          user.blue +
