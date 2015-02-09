@@ -2,9 +2,14 @@
 
 require 'colorize'
 
-user = '<%= options['github_id'] %>'
+github_user = '<%= options['github_id'] %>'
 opts = {}
 opts[:copy] = false
+
+# --------------------
+#
+#     Helper Methods
+#
 
 def pbcopy(input)
   str = input.to_s
@@ -19,6 +24,32 @@ end
 def git_repo_url_for(user, repo)
     "git@github.com:#{user}/#{repo}.git"
 end
+
+# This nifty ruby snippet is copied and modified
+# from defunkt's dotjs repository.
+# Source: https://github.com/defunkt/dotjs/blob/master/Rakefile
+def prompt( ask = "" )
+  answer = nil
+
+  puts ask
+  begin
+    until %w( k ok y yes n no ).include?(answer = $stdin.gets.chomp.downcase)
+      puts "(psst... please type y or n)"
+      puts ask
+    end
+  rescue Interrupt
+    return false
+  end
+
+  return false if answer =~ /n/
+
+  return true
+end
+
+# --------------------
+#
+#     'hub'
+#
 
 args = ARGV.dup
 
@@ -55,6 +86,7 @@ if input.size > 1
   user  = input[0]
   repo = input[1]
 else
+  user = github_user
   repo = input[0]
 end
 
@@ -69,8 +101,44 @@ elsif opts[:add]
         puts "Oops, this place does not seem to have a git repo.".red
         exit(1)
     end
-    puts "Adding remote origin: ".light_yellow + repo_url_in_color
-    %x( git remote add origin #{repo_url} )
+
+    add_repo = false
+
+    # Check if this repo exists
+    %x( git ls-remote #{repo_url} &>/dev/null )
+    unless $?.exitstatus == 0
+        # Is this a repo the user think he owns?
+        if github_user == user
+            # Is 'gh' installed
+            %x( which gh &>/dev/null )
+            if $?.exitstatus == 0
+                # Offer to create a new repo for him
+                puts "Looks like you haven't created this repo yet.".yellow
+                create_repo = prompt("Would you like me to set that up for you? (Y/N)".yellow)
+
+                if create_repo
+                    puts "Creating ".yellow + user.blue + "/".yellow + repo.blue + "...".yellow
+                    %x( gh repo --new #{repo} )
+                    add_repo = true
+                else
+                    add_repo = prompt("Would you like to add this remote repository anyway? (Y/N)".yellow)
+                end
+            end
+        else
+            puts "I'm sorry that repository doesn't seem to exist.".red
+            add_repo = prompt("Would you like to add it anyway? (Y/N)".yellow)
+        end
+    else
+        add_repo = true
+    end
+
+    if add_repo
+        puts "Adding remote origin: ".light_yellow + repo_url_in_color
+        %x( git remote add origin #{repo_url} )
+    else
+        puts "Aborting without taking any action.".red
+        exit(1)
+    end
 else
     puts "Assuming you mean '".light_yellow +
          user.blue +
