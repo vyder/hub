@@ -18,14 +18,27 @@ end
 
 args = ARGV.dup
 
-if args[0] == "--copy"
-    opts[:copy] = true
+display_help = false
+
+first_arg = args[0]
+if !first_arg.nil? and first_arg[0] == "-" # It's an option
     args.shift
+    if first_arg == "--copy"
+        opts[:copy] = true
+    elsif first_arg == "--help"
+        display_help = true
+    end
 end
 
-if args.empty?
-    # TODO: Display help
-    puts "Oops, you're using this all wrong".red
+if args.empty? or display_help
+    # TODO : Display help
+    help_text = <<EOF
+        Oops, you're using this all wrong.
+        And I haven't written anything useful in this
+        help text to help you work out what to do...
+        So, yeah...take a look at the 'hub' command :)
+EOF
+    print help_text.red
     exit(0)
 end
 
@@ -46,9 +59,9 @@ if opts[:copy]
     puts "Copied #{repo_url.blue} to your clipboard!"
 else
     puts "Assuming you mean '".light_yellow +
-    	 user.blue +
+         user.blue +
          "/".light_yellow +
-    	 repo.blue +
+         repo.blue +
          "'.".light_yellow
     %x( git clone #{repo_url} )
 end
