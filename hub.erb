@@ -3,8 +3,8 @@
 require 'colorize'
 
 github_user = '<%= options['github_id'] %>'
-opts = {}
-opts[:copy] = false
+OPTIONS = {}
+OPTIONS[:copy] = false
 
 # --------------------
 #
@@ -23,6 +23,45 @@ end
 
 def git_repo_url_for(user, repo)
     "git@github.com:#{user}/#{repo}.git"
+end
+
+def license
+    year = Time.now.strftime("%Y")
+    name = %x( git config user.name )
+
+    if name.empty?
+        puts "Please setup 'user.name' in git-config.".red
+        exit(1)
+    end
+
+    license_txt = <<EOF
+The MIT License (MIT)
+
+Copyright (c) [year] [fullname]
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+EOF
+
+    license_txt.gsub!("[year]", year)
+    license_txt.gsub!("[fullname]", name)
+
+    return license_txt
 end
 
 # This nifty ruby snippet is copied and modified
@@ -50,106 +89,117 @@ end
 #
 #     'hub'
 #
+def run_hub(args)
+    display_help = false
 
-args = ARGV.dup
-
-display_help = false
-
-first_arg = args[0]
-if !first_arg.nil? and first_arg[0] == "-" # It's an option
-    args.shift
-    if first_arg == "--copy"
-        opts[:copy] = true
-    elsif first_arg == "--add"
-        opts[:add] = true
-    elsif first_arg == "--help"
-        display_help = true
+    first_arg = args[0]
+    if !first_arg.nil? and first_arg[0] == "-" # It's an option
+        args.shift
+        if first_arg == "--copy"
+            OPTIONS[:copy] = true
+        elsif first_arg == "--add"
+            OPTIONS[:add] = true
+        elsif first_arg == "--license"
+            OPTIONS[:license] = true
+        else
+            display_help = true
+        end
     end
-end
 
-if args.empty? or display_help
-    # TODO : Display help
-    help_text = <<EOF
-        Oops, you're using this all wrong.
-        And I haven't written anything useful in this
-        help text to help you work out what to do...
-        So, yeah...take a look at the 'hub' command :)
+    if OPTIONS[:license]
+        puts "Adding MIT license file to current directory...".yellow
+        File.open('LICENSE', 'w') { |file| file.write(license) }
+        puts "Done!".green
+        exit(0)
+    end
+
+    if args.empty? or display_help
+        # TODO : Display help
+        help_text = <<EOF
+            Oops, you're using this all wrong.
+            And I haven't written anything useful in this
+            help text to help you work out what to do...
+            So, yeah...take a look at the 'hub' command :)
 EOF
-    print help_text.red
-    exit(0)
-end
-
-input = args[0].split('/')
-
-repo = nil
-if input.size > 1
-  user  = input[0]
-  repo = input[1]
-else
-  user = github_user
-  repo = input[0]
-end
-
-repo_url = git_repo_url_for(user, repo)
-repo_url_in_color = git_repo_url_for(user.blue, repo.blue)
-
-if opts[:copy]
-    pbcopy(repo_url)
-    puts "Copied #{repo_url.blue} to your clipboard!"
-elsif opts[:add]
-    unless File.exist?(".git")
-        puts "Oops, this place does not seem to have a git repo.".red
-        exit(1)
+        print help_text.red
+        exit(0)
     end
 
-    add_repo = false
+    input = args[0].split('/')
 
-    # Check if this repo exists
-    %x( git ls-remote #{repo_url} &>/dev/null )
-    unless $?.exitstatus == 0
-        # Is this a repo the user think he owns?
-        if github_user == user
-            # Offer to create a new repo for him
-            puts "Looks like you haven't created this repo yet.".yellow
+    repo = nil
+    if input.size > 1
+      user  = input[0]
+      repo = input[1]
+    else
+      user = github_user
+      repo = input[0]
+    end
 
-            # Is 'gh' installed
-            %x( which gh &>/dev/null )
-            if $?.exitstatus == 0
-                create_repo = prompt("Would you like me to set that up for you? (y/n)".yellow)
+    repo_url = git_repo_url_for(user, repo)
+    repo_url_in_color = git_repo_url_for(user.blue, repo.blue)
 
-                if create_repo
-                    puts "Creating ".yellow + user.blue + "/".yellow + repo.blue + "...".yellow
-                    %x( gh repo --new #{repo} )
-                    add_repo = true
+    if OPTIONS[:copy]
+        pbcopy(repo_url)
+        puts "Copied #{repo_url.blue} to your clipboard!"
+    elsif OPTIONS[:add]
+        unless File.exist?(".git")
+            puts "Oops, this place does not seem to have a git repo.".red
+            exit(1)
+        end
+
+        add_repo = false
+
+        # Check if this repo exists
+        %x( git ls-remote #{repo_url} &>/dev/null )
+        unless $?.exitstatus == 0
+            # Is this a repo the user think he owns?
+            if github_user == user
+                # Offer to create a new repo for him
+                puts "Looks like you haven't created this repo yet.".yellow
+
+                # Is 'gh' installed
+                %x( which gh &>/dev/null )
+                if $?.exitstatus == 0
+                    create_repo = prompt("Would you like me to set that up for you? (y/n)".yellow)
+
+                    if create_repo
+                        puts "Creating ".yellow + user.blue + "/".yellow + repo.blue + "...".yellow
+                        %x( gh repo --new #{repo} )
+                        add_repo = true
+                    else
+                        add_repo = prompt("Would you like to add this remote repository anyway? (y/n)".yellow)
+                    end
                 else
+                    puts "Looks like you don't have the 'gh' tool installed.".red
+                    puts "I can't create remote repository for you.".red
+                    puts "You can install it by running '".yellow + "brew install gh".blue + "'.".yellow
                     add_repo = prompt("Would you like to add this remote repository anyway? (y/n)".yellow)
                 end
             else
-                puts "Looks like you don't have the 'gh' tool installed.".red
-                puts "I can't create remote repository for you.".red
-                puts "You can install it by running '".yellow + "brew install gh".blue + "'.".yellow
-                add_repo = prompt("Would you like to add this remote repository anyway? (y/n)".yellow)
+                puts "I'm sorry that repository doesn't seem to exist.".red
+                add_repo = prompt("Would you like to add it anyway? (y/n)".yellow)
             end
         else
-            puts "I'm sorry that repository doesn't seem to exist.".red
-            add_repo = prompt("Would you like to add it anyway? (y/n)".yellow)
+            add_repo = true
+        end
+
+        if add_repo
+            puts "Adding remote origin: ".light_yellow + repo_url_in_color
+            %x( git remote add origin #{repo_url} )
+        else
+            puts "Aborting without taking any action.".red
+            exit(1)
         end
     else
-        add_repo = true
+        puts "Assuming you mean '".light_yellow +
+             user.blue +
+             "/".light_yellow +
+             repo.blue +
+             "'.".light_yellow
+        %x( git clone #{repo_url} )
     end
-
-    if add_repo
-        puts "Adding remote origin: ".light_yellow + repo_url_in_color
-        %x( git remote add origin #{repo_url} )
-    else
-        puts "Aborting without taking any action.".red
-        exit(1)
-    end
-else
-    puts "Assuming you mean '".light_yellow +
-         user.blue +
-         "/".light_yellow +
-         repo.blue +
-         "'.".light_yellow
-    %x( git clone #{repo_url} )
 end
+
+# Kickoff the script
+run_hub(ARGV.dup)
