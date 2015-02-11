@@ -109,24 +109,30 @@ elsif opts[:add]
     unless $?.exitstatus == 0
         # Is this a repo the user think he owns?
         if github_user == user
+            # Offer to create a new repo for him
+            puts "Looks like you haven't created this repo yet.".yellow
+
             # Is 'gh' installed
             %x( which gh &>/dev/null )
             if $?.exitstatus == 0
-                # Offer to create a new repo for him
-                puts "Looks like you haven't created this repo yet.".yellow
-                create_repo = prompt("Would you like me to set that up for you? (Y/N)".yellow)
+                create_repo = prompt("Would you like me to set that up for you? (y/n)".yellow)
 
                 if create_repo
                     puts "Creating ".yellow + user.blue + "/".yellow + repo.blue + "...".yellow
                     %x( gh repo --new #{repo} )
                     add_repo = true
                 else
-                    add_repo = prompt("Would you like to add this remote repository anyway? (Y/N)".yellow)
+                    add_repo = prompt("Would you like to add this remote repository anyway? (y/n)".yellow)
                 end
+            else
+                puts "Looks like you don't have the 'gh' tool installed.".red
+                puts "I can't create remote repository for you.".red
+                puts "You can install it by running '".yellow + "brew install gh".blue + "'.".yellow
+                add_repo = prompt("Would you like to add this remote repository anyway? (y/n)".yellow)
             end
         else
             puts "I'm sorry that repository doesn't seem to exist.".red
-            add_repo = prompt("Would you like to add it anyway? (Y/N)".yellow)
+            add_repo = prompt("Would you like to add it anyway? (y/n)".yellow)
         end
     else
         add_repo = true
