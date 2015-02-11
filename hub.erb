@@ -2,7 +2,7 @@
 
 require 'colorize'
 
-github_user = '<%= options['github_id'] %>'
+GITHUB_USER = '<%= options['github_id'] %>'
 OPTIONS = {}
 OPTIONS[:copy] = false
 
@@ -132,7 +132,7 @@ EOF
       user  = input[0]
       repo = input[1]
     else
-      user = github_user
+      user = GITHUB_USER
       repo = input[0]
     end
 
@@ -154,7 +154,7 @@ EOF
         %x( git ls-remote #{repo_url} &>/dev/null )
         unless $?.exitstatus == 0
             # Is this a repo the user think he owns?
-            if github_user == user
+            if GITHUB_USER == user
                 # Offer to create a new repo for him
                 puts "Looks like you haven't created this repo yet.".yellow
 
