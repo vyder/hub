@@ -115,13 +115,24 @@ def run_hub(args)
 
     if args.empty? or display_help
         # TODO : Display help
-        help_text = <<EOF
-            Oops, you're using this all wrong.
-            And I haven't written anything useful in this
-            help text to help you work out what to do...
-            So, yeah...take a look at the 'hub' command :)
+        help_error = <<EOF
+        Oops, you're using this all wrong.
 EOF
-        print help_text.red
+        help_info = <<EOF
+        Examples:
+        * hub stuff
+        => Clones vyder/stuff
+        * hub defunkt/dotjs
+        => Clones defunkt/dotjs
+        * hub --copy things
+        => Copies "git@github.com:vyder/things.git" to clipboard
+        * hub --add things
+        => Runs `git remote origin git@github.com:vyder/things.git`
+        * hub --license
+        => Creates a new LICENSE file with the MIT license
+EOF
+        print help_error.red
+        print help_info.blue
         exit(0)
     end
 
