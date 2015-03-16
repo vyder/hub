@@ -101,6 +101,8 @@ def run_hub(args)
             OPTIONS[:add] = true
         elsif first_arg == "--license"
             OPTIONS[:license] = true
+        elsif first_arg == "--show"
+            OPTIONS[:show] = true
         else
             display_help = true
         end
@@ -110,6 +112,18 @@ def run_hub(args)
         puts "Adding MIT license file to current directory...".yellow
         File.open('LICENSE', 'w') { |file| file.write(license) }
         puts "Done!".green
+        exit(0)
+    end
+
+    if OPTIONS[:show]
+        repo_url = %x( git remote show origin | grep "Fetch URL" | cut -d' ' -f5 ).chomp
+        unless repo_url.match(/^git@github\.com/)
+            puts "This doesn't look like it's a Github repository.".red
+            puts "Repo: #{repo_url}.".red
+            exit(1)
+        end
+        repo = repo_url.match(/^git@github.com:([^\.]*)\.git$/)[1]
+        puts "Github Repository: ".green + repo.blue
         exit(0)
     end
 
