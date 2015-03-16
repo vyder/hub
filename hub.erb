@@ -30,7 +30,7 @@ def license
     name = %x( git config user.name )
 
     if name.empty?
-        puts "Please setup 'user.name' in git-config.".red
+        output "Please setup 'user.name' in git-config.".red
         exit(1)
     end
 
@@ -70,11 +70,11 @@ end
 def prompt( ask = "" )
   answer = nil
 
-  puts ask
+  output ask
   begin
     until %w( k ok y yes n no ).include?(answer = $stdin.gets.chomp.downcase)
-      puts "(psst... please type y or n)"
-      puts ask
+      output "(psst... please type y or n)"
+      output ask
     end
   rescue Interrupt
     return false
@@ -83,6 +83,15 @@ def prompt( ask = "" )
   return false if answer =~ /n/
 
   return true
+end
+
+# Colorizes output if this command is not being piped
+def output(message)
+    if $stdout.tty?
+        puts message
+    else
+        puts message.uncolorize
+    end
 end
 
 # --------------------
@@ -109,21 +118,21 @@ def run_hub(args)
     end
 
     if OPTIONS[:license]
-        puts "Adding MIT license file to current directory...".yellow
+        output "Adding MIT license file to current directory...".yellow
         File.open('LICENSE', 'w') { |file| file.write(license) }
-        puts "Done!".green
+        output "Done!".green
         exit(0)
     end
 
     if OPTIONS[:show]
         repo_url = %x( git remote show origin | grep "Fetch URL" | cut -d' ' -f5 ).chomp
         unless repo_url.match(/^git@github\.com/)
-            puts "This doesn't look like it's a Github repository.".red
-            puts "Repo: #{repo_url}.".red
+            output "This doesn't look like it's a Github repository.".red
+            output "Repo: #{repo_url}.".red
             exit(1)
         end
         repo = repo_url.match(/^git@github.com:([^\.]*)\.git$/)[1]
-        puts "Github Repository: ".green + repo.blue
+        output "Github Repository: ".green + repo.blue
         exit(0)
     end
 
@@ -170,10 +179,10 @@ EOF
 
     if OPTIONS[:copy]
         pbcopy(repo_url)
-        puts "Copied #{repo_url.blue} to your clipboard!"
+        output "Copied #{repo_url.blue} to your clipboard!"
     elsif OPTIONS[:add]
         unless File.exist?(".git")
-            puts "Oops, this place does not seem to have a git repo.".red
+            output "Oops, this place does not seem to have a git repo.".red
             exit(1)
         end
 
@@ -185,7 +194,7 @@ EOF
             # Is this a repo the user think he owns?
             if GITHUB_USER == user
                 # Offer to create a new repo for him
-                puts "Looks like you haven't created this repo yet.".yellow
+                output "Looks like you haven't created this repo yet.".yellow
 
                 # Is 'gh' installed
                 %x( which gh &>/dev/null )
@@ -193,20 +202,20 @@ EOF
                     create_repo = prompt("Would you like me to set that up for you? (y/n)".yellow)
 
                     if create_repo
-                        puts "Creating ".yellow + user.blue + "/".yellow + repo.blue + "...".yellow
+                        output "Creating ".yellow + user.blue + "/".yellow + repo.blue + "...".yellow
                         %x( gh repo --new #{repo} )
                         add_repo = true
                     else
                         add_repo = prompt("Would you like to add this remote repository anyway? (y/n)".yellow)
                     end
                 else
-                    puts "Looks like you don't have the 'gh' tool installed.".red
-                    puts "I can't create remote repository for you.".red
-                    puts "You can install it by running '".yellow + "npm install gh".blue + "'.".yellow
+                    output "Looks like you don't have the 'gh' tool installed.".red
+                    output "I can't create remote repository for you.".red
+                    output "You can install it by running '".yellow + "npm install gh".blue + "'.".yellow
                     add_repo = prompt("Would you like to add this remote repository anyway? (y/n)".yellow)
                 end
             else
-                puts "I'm sorry that repository doesn't seem to exist.".red
+                output "I'm sorry that repository doesn't seem to exist.".red
                 add_repo = prompt("Would you like to add it anyway? (y/n)".yellow)
             end
         else
@@ -214,14 +223,14 @@ EOF
         end
 
         if add_repo
-            puts "Adding remote origin: ".light_yellow + repo_url_in_color
+            output "Adding remote origin: ".light_yellow + repo_url_in_color
             %x( git remote add origin #{repo_url} )
         else
-            puts "Aborting without taking any action.".red
+            output "Aborting without taking any action.".red
             exit(1)
         end
     else
-        puts "Assuming you mean '".light_yellow +
+        output "Assuming you mean '".light_yellow +
              user.blue +
              "/".light_yellow +
              repo.blue +
